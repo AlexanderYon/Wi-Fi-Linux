@@ -237,7 +237,12 @@ def status(show_password = False):
 
 @wifi.command(help = "List all available networks for connect")
 @click.option("--verbose", "-v", is_flag = True, help = "Show more information about available networks")
-def list(verbose = False):
+@click.option("--saved", "-s", is_flag = True, help = "List saved networks")
+def list(verbose = False, saved = False):
+    if saved:
+        for network in saved_networks:
+            print(network)
+        return
     if verbose:
         print(_run_command(LIST).stdout)
     else:
@@ -272,15 +277,21 @@ def connect():
         
     else:
         
+        password = getpass.getpass(f"Password for {SSID}: ")
+        result = _connect_to_network(SSID, password)
+        
+        if result.returncode != 0:
+            _send_message(CONNECTION_FAILED_MESSAGE)
+            return
+        
         if not saved_config[AUTOSAVE]:
             save_this_network = input(f"Save the network '{SSID}' (y/n): ")
             if save_this_network.lower() != "y":
                 return
+            
         _save_network(SSID, password)
         _send_message(NETWORK_SAVED_MESSAGE)
 
-        password = getpass.getpass(f"Password for {SSID}: ")
-        _connect_to_network(SSID, password)
         
     _send_message(CONNECTION_SUCCESSFULLY_MESSAGE)
 
