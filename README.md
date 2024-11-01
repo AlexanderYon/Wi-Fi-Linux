@@ -22,17 +22,19 @@ To run this script, ensure the following dependencies are installed:
 - [Cryptography](https://cryptography.io/) - Install via `pip install cryptography`
 - [Inquirer](https://pypi.org/project/inquirer/) - Install via `pip install inquirer`
 
+In any case, also you can install them through your package manager (`apt`, `dnf`, `pacman`, etc).
 Other Linux commands and tools (`nmcli`, `notify-send`) are used, so make sure they’re available on your system.
 
 ## Installation
 
-1. Clone this repository or copy the `wifi.py` script into your desired directory.
+1. Clone this repository or copy the `wifi` and `default_config.py` script into your desired directory.
 2. Make the script executable:
     ```bash
-    chmod +x wifi.py
+    chmod +x wifi
     ```
-3. (Optional) Move it to a directory in your PATH to use it from any location.
-
+- **Optional**
+  Move it to a directory in your PATH to use it from any location.
+  
 ## Usage
 
 The script provides several commands under the `wifi` command group:
@@ -41,51 +43,69 @@ The script provides several commands under the `wifi` command group:
 
 - **Turn Wi-Fi On/Off:**
   ```bash
-  ./wifi.py on
-  ./wifi.py off
+  ./wifi on
+  ./wifi off
   ```
   
 - **View Status:**
   ```bash
-  ./wifi.py status [--show-password]
+  ./wifi status [--show-password]
   ```
   
 - **List Networks:**
   ```bash
-  ./wifi.py list [-v | --verbose] [-s | --saved]
+  ./wifi list [-v | --verbose] [-s | --saved]
   ```
 
 - **Connect to a Network:**
   ```bash
-  ./wifi.py connect
+  ./wifi connect [-h | --hide-password]
+  ```
+  This commands will display an interactive menu where you can choose a network to connect to. Something like this:
+  ```bash
+  [?] Select a network to connect. Press Ctrl + C to exit: 
+  > Network1
+  Network2
+  Network3
+  ...
   ```
 
 - **Disconnect:**
   ```bash
-  ./wifi.py disconnect
+  ./wifi disconnect
   ```
 
 - **Save Current Network:**
   ```bash
-  ./wifi.py save
+  ./wifi save
   ```
 
 - **Forget a Network:**
   ```bash
-  ./wifi.py forget [--all]
+  ./wifi forget [--all]
   ```
 
-### Configuration Commands
+### Configuration
+All settings are saved in the `config.json` file in the configuration directory; `~/.config/wifi/` by default the first time. So, you can change the settings by editing this file directly or
+vía CLI:
+
+#### Configuration Commands
 
 - **View Configuration:**
   ```bash
-  ./wifi.py config get [--autosave] [--notifications] [--password-encryption] [--hide-password] [-a | --all]
+  ./wifi config get [-a | --autosave] [-n | --notifications] [-p | --password-encryption] [-A | --all]
   ```
   
 - **Set Configuration Options:**
   ```bash
-  ./wifi.py config set [--autosave=<true|false>] [--notifications=<true|false>] [--password-encryption=<true|false>] [--hide-password=<true|false>]
+  ./wifi config set [-a | --autosave=<true|false>] [-n | --notifications=<true|false>] [-p | --password-encryption=<true|false>] [-r | --reset]
   ```
+
+### Help
+You can see the help or more infro about a command excecuting:
+```bash
+./wifi --help
+```
 
 ### Configuration Options
 
@@ -94,7 +114,6 @@ You can customize the behavior of the script by setting the following options:
 - `autosave` – Automatically save networks after connection
 - `notifications` – Show notifications for Wi-Fi operations (uses `notify-send`)
 - `password-encryption` – Enables password encryption for security
-- `hide-password` – Hides passwords on screen while connecting
 
 ## Security
 
@@ -105,6 +124,7 @@ The script securely saves network credentials by encrypting passwords with `Fern
 - Network credentials are saved in JSON files in the config directory.
 - This script is intended for Linux systems with network management tools available via the terminal.
 
----
+## Coming son!!
+The possibility of incorporating an interactive main menu or even graphical interface will be evaluated in future versions.
 
-This README provides all the necessary instructions to set up, configure, and use the Wi-Fi management script. Let me know if you need further customization!
+---
