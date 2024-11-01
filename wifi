@@ -310,7 +310,7 @@ def disconnect():
             _send_message(DISCONNECTION_SUCCESSFULLY_MESSAGE)
             return
 
-@wifi.command()
+@wifi.command(help = "Save the current network")
 def save():
     current_data = _get_current_network_data()
     
@@ -346,10 +346,10 @@ def config():
     pass    
 
 @config.command(help = "Get configuration values")
-@click.option(f"--{AUTOSAVE}", is_flag=True, help="Allows save the networks automatically before connection")
-@click.option(f"--{NOTIFICATIONS}", is_flag=True, help="Allows send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
+@click.option(f"--{AUTOSAVE}", is_flag=True, help="Save the networks automatically after connection")
+@click.option(f"--{NOTIFICATIONS}", is_flag=True, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
 @click.option(f"--{PASSWORD_ENCRYPTION}", is_flag=True, help="Allows password encryption for added security when saving networks. (It's not recommended to set it to False)")
-@click.option(f"--{HIDE_PASSWORD}", is_flag=True, help="Allows hide the network password while connecting")
+@click.option(f"--{HIDE_PASSWORD}", is_flag=True, help="Hide the network password while connecting")
 @click.option(f"--all", "-a", is_flag=True, help="Get all config option values")
 def get(autosave, notifications, password_encryption, hide_password, all):
     if not (autosave or notifications or password_encryption or hide_password or all):
@@ -371,10 +371,10 @@ def get(autosave, notifications, password_encryption, hide_password, all):
         print(f"Hide Password = {saved_config[HIDE_PASSWORD]}")
 
 @config.command(help = "Set values to configuration options")
-@click.option(f"--{AUTOSAVE}", type=bool)
-@click.option(f"--{NOTIFICATIONS}", type=bool)
-@click.option(f"--{PASSWORD_ENCRYPTION}", type=bool)
-@click.option(f"--{HIDE_PASSWORD}", type=bool)
+@click.option(f"--{AUTOSAVE}", type=bool, help="Save the networks automatically after connection")
+@click.option(f"--{NOTIFICATIONS}", type=bool, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
+@click.option(f"--{PASSWORD_ENCRYPTION}", type=bool, help="Allows password encryption for added security when saving networks. (It's not recommended to set it to False)")
+@click.option(f"--{HIDE_PASSWORD}", type=bool, help="Hide the network password while connecting")
 @click.option("--reset", is_flag=True, help="Reset all configurations by default")
 def set(autosave, notifications, password_encryption, hide_password, reset):
     if (autosave == None and notifications == None and password_encryption == None and hide_password == None and reset == None):
