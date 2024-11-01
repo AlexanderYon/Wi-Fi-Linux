@@ -38,7 +38,7 @@ Other Linux commands and tools (`nmcli`, `notify-send`) are used, so make sure t
     
 ### Optional
 
-For your convenience, you can create a symlink in any directory that is in your PATH. For example, suposing that `~/.local/bin/` is in your PATH:
+For your convenience, you can create a symlink in any directory that is in your PATH. For example, supposing that `~/.local/bin/` is in your PATH:
 
 ```bash
 ln -s .../path/to/wifi/script ~/.local/bin/wifi   
