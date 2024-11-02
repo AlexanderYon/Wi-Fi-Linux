@@ -1,7 +1,13 @@
 #!/bin/python3
 import click, subprocess, getpass, json, os, inquirer
 from cryptography.fernet import Fernet
-from default_config import *
+from default import *
+
+# ===========================================================================
+#
+#       PRIVATE FUNCTIONS
+#
+#
 
 def _load_or_gen_ecncryption_key():
     """
@@ -15,11 +21,12 @@ def _load_or_gen_ecncryption_key():
     if not os.path.exists(ENCRYPTION_KEY_FILE):
         key = Fernet.generate_key()
         
+        # Save the key
         with open(ENCRYPTION_KEY_FILE, 'wb') as key_file:
             key_file.write(key)
         print(f"Encryption key generated and saved in {ENCRYPTION_KEY_FILE}")
     
-    return open(ENCRYPTION_KEY_FILE, 'rb').read()
+    return open(ENCRYPTION_KEY_FILE, 'rb').read() # Reutrn the key
 
 def _encrypt(token : str):
     """
@@ -94,12 +101,16 @@ def _load_saved_networks() -> dict:
         Returns:
             dict: The saved networks
     """
+    
+    # If the saved networks file doesn't exists, create it
     if not os.path.exists(SAVED_NETWORKS_FILE):
         os.makedirs(CONFIG_DIR, exist_ok=True)
         
+        # The file uses JSON format
         with open(SAVED_NETWORKS_FILE, 'w') as saved_networks_file:
             json.dump({}, saved_networks_file, indent=4)
-        
+    
+    # Load the saved networks file
     with open(SAVED_NETWORKS_FILE, 'r') as saved_networks_file:
         return json.load(saved_networks_file)
 
@@ -113,7 +124,7 @@ def _load_saved_networks() -> dict:
 
 saved_config = _load_config() # load the config map (dictionary) globally from the config.json file
 saved_networks = _load_saved_networks() # load the saved-networks map (dictionary) globally from the saved_networks.json file
-_load_or_gen_ecncryption_key()
+_load_or_gen_ecncryption_key() # Load the encryption key (or generate it)
 
 
 # ===========================================================================
@@ -123,29 +134,29 @@ _load_or_gen_ecncryption_key()
 #
 
 def _get_available_networks():
-    """
-        Return a list of all available networks
-    """
+    """Return a list of all available networks."""
     networks = _run_command(GET_AVAILABLE_NETWORKS).stdout.strip().split('\n')
     return [network for network in networks if network]    
 
 # Return a tuple with the current basic credentials: (SSID, password)
 def _get_current_network_data():
     """
-        Return the information of the current connection using the next format:
+        Return the information of the current connection using the next form:
 
-            [SSID, Password]
+            (SSID, Password)
     """
     
-    SSID = _run_command(GET_CURRENT_SSID).stdout.strip()
+    # Get the current SSID
+    # It uses strip() to remove the '\n' character
+    ssid = _run_command(GET_CURRENT_SSID).stdout.strip() 
     
-    if SSID == None:
+    if ssid == "": # This means that there isn't a current connection
         return None
     
-    psswd = _run_command(GET_CURRENT_PASSWORD).stdout.strip()
+    # Get the password of the network
+    psswd = _run_command(GET_CURRENT_PASSWORD).stdout.strip() 
     
-    # It uses srtip to delete the '\n' character in the end on the output from the CLI
-    return SSID, psswd
+    return ssid, psswd
 
 
 def _save_network(ssid : str, password : str):
@@ -163,25 +174,28 @@ def _save_network(ssid : str, password : str):
             credentials = json.load(file)
     else:
         credentials = saved_networks
+    
     credentials[ssid] = _encrypt(password) # Save new credential with the encrypted password
-       
+        
     with open(SAVED_NETWORKS_FILE, 'w') as file: # Write updated credentials back to the JSON file
         json.dump(credentials, file, indent=4)
 
 def _remove_network(ssid: str):
-    """
-        Remove a given network from the saved networks
-    """
+    """Remove a given network from the saved networks"""
+    
+    # If the networks isn't saved, show a error message
     if ssid not in saved_networks:
         _send_message(NO_CREDENTIALS_FOUND.format(network_ssid=ssid))
         return
+    
     del saved_networks[ssid]
-    with open(SAVED_NETWORKS_FILE, 'w') as file:
+    
+    with open(SAVED_NETWORKS_FILE, 'w') as file: # Update the saved networks
         json.dump(saved_networks, file, indent=4)
     _send_message(NETWORK_FORGOTTEN_SUCESSFULLY.format(network_ssid=ssid))
 
 def _run_command(command : str):
-    ''' Run a command and return the process
+    ''' Run a command and return the process. Internally uses 'subprocess' module
     
         Args:
             command (str): The command string
@@ -192,16 +206,23 @@ def _run_command(command : str):
     return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         
 def _send_message(message : str):
-    """
-        Send a message to user via CLI. If notifications are allowed, send the message using notify-send
-    """
+    """Send a message to user via CLI. If notifications are allowed, send the message using notify-send"""
     if saved_config[NOTIFICATIONS]:
         _run_command(f"notify-send '{message}'")
     else:
         print(message)
         
 def _connect_to_network(ssid : str, password : str):
+    """Connect to a network using the given credentials (ssid, password)"""
     return _run_command(CONNECT.format(network_ssid=ssid.replace(" ", r"\ "), network_password=password))
+
+
+# =================================================================================================
+#
+#           CLI
+#
+#
+
 
 @click.group(help = "A CLI tool for basic Wi-Fi manage")
 def wifi():
@@ -209,50 +230,73 @@ def wifi():
 
 @wifi.command(help = "Power on Wi-Fi")
 def on():
+    """Turn on the Wi-Fi"""
     _run_command(ON)
     _send_message(ON_MESSAGE)
 
 @wifi.command(help = "Power off Wi-Fi")
 def off():
+    """Turn off the Wi-Fi"""
     _run_command(OFF)
     _send_message(OFF_MESSAGE)
 
 @wifi.command(help = "Get the general status of the Wi-Fi")
-@click.option("--show-password", is_flag = True, help = "Show the password of the current network (use carefully)")
+@click.option("--show-password", "-s", is_flag = True, help = "Show the password of the current network (use carefully)")
 def status(show_password = False):
+    """Show the Wi-Fi general status"""
     status = _run_command(GET_DEVICE_STATUS).stdout
+    
     for line in status.splitlines():
         _, dev_type, dev_status = line.split(":")
+        
+        # Check the Wi-Fi status
         if dev_type == "wifi":
+            print(dev_status)
+            
+            # Wi-Fi is disabled
             if dev_status == "unavailable":
                 print("Off")
-                return
-            elif "connected" in dev_status:
+            
+            # Wi-Fi is enabled but is disconnected
+            elif "disconnected" in dev_status:
+                print("Disconnected")
+                
+            # Wi-Fi is connected
+            else: 
                 print("Connected")
                 credentials = _get_current_network_data()
                 print(f"Network: {credentials[0]}")
                 
+                # Show the password if user want it
                 if show_password:
                     print(f"Password: {credentials[1]}")
 
-@wifi.command(help = "List all available networks for connect")
+@wifi.command(help = "List networks")
 @click.option("--verbose", "-v", is_flag = True, help = "Show more information about available networks")
 @click.option("--saved", "-s", is_flag = True, help = "List saved networks")
 def list(verbose = False, saved = False):
+    """List networks, either those available to connect or those saved"""
+    # List saved networks
     if saved:
         for network in saved_networks:
             print(network)
         return
+    
+    # List available networks
     if verbose:
         print(_run_command(LIST).stdout)
+        
     else:
-        print(">>> Available Networks\n")
+        print("\n>>> Available Networks <<<\n")
         available_networks = _get_available_networks()
         for network in available_networks:
             print(network)
 
-@wifi.command(help = "Show a menu to select a Network to connect to")
-def connect():
+@wifi.command(help = "Display a menu to select a Network to connect to")
+@click.option("--show-password", "-s", is_flag = True, help = "Show the password while connecting")
+def connect(show_password = False):
+    """This function interacts with user by showing a menu where user can choose a network to connect to"""
+    # Defines the menu to show the available networks to connect to
     menu = [
         inquirer.List(
             'Network',
@@ -261,75 +305,93 @@ def connect():
         )
     ]
     
-    SSID = inquirer.prompt(menu)['Network']
+    # Network choosed by user
+    ssid = inquirer.prompt(menu)['Network']
     
-    print(f"COnecting to '{SSID}'")
+    print(f"Conecting to '{ssid}'")
     
-    # If the network is saved
-    if (SSID in saved_networks):
-        password = _decrypt(saved_networks[SSID])
-        result = _connect_to_network(SSID, password)
+    # If the network is saved, get the password from the saved networks file 
+    if ssid in saved_networks:
+        password = _decrypt(saved_networks[ssid])
+        result = _connect_to_network(ssid, password)
         
         # If the connection failed, exit
         if result.returncode != 0:
-            _send_message(CONNECTION_FAILED_MESSAGE)
+            _send_message(CONNECTION_FAILED)
             return
-        
     else:
         
-        password = getpass.getpass(f"Password for {SSID}: ")
-        result = _connect_to_network(SSID, password)
+        # If user want hide the password, hide it
+        if show_password:
+            password = input(f"Password for '{ssid}': ")
+        else:
+            password = getpass.getpass(f"Password for '{ssid}': ")
+            
+        result = _connect_to_network(ssid, password) # Try connect to network
         
+        # Notify if something went wrong
         if result.returncode != 0:
-            _send_message(CONNECTION_FAILED_MESSAGE)
+            _send_message(CONNECTION_FAILED)
             return
         
+        # If the autosave isn't enabled, ask if user want to save the network
         if not saved_config[AUTOSAVE]:
-            save_this_network = input(f"Save the network '{SSID}' (y/n): ")
-            if save_this_network.lower() != "y":
-                return
+            save_this_network = input(f"Save the network '{ssid}' (y/n): ")
             
-        _save_network(SSID, password)
-        _send_message(NETWORK_SAVED_MESSAGE)
-
+            if save_this_network.lower() != "y": # If the user don't want, exit
+                return
         
-    _send_message(CONNECTION_SUCCESSFULLY_MESSAGE)
+        _save_network(ssid, password)
+        _send_message(NETWORK_SAVED)
+
+    _send_message(CONNECTION_SUCCESSFULL)
 
 @wifi.command(help = "Disconnect from the current connection")
 def disconnect():
+    """Disconnect fro the current network. If there isn't a current connection, display an error message"""
     result = _run_command(GET_DEVICE_STATUS)
-
+    
+    # User is already disconnected
     if result.returncode != 0:
         _send_message(NO_CURRENT_NETWORK_DETECTED)
         return
     
+    # Disconnect from the current network
     for line in result.stdout.splitlines():
         current_device, device_type, status = line.split(":")
         if (device_type == "wifi" and status == "connected"): 
             _run_command(DISCONNECT.format(device=current_device))
-            _send_message(DISCONNECTION_SUCCESSFULLY_MESSAGE)
+            _send_message(DISCONNECTION_SUCCESSFULLY)
             return
 
 @wifi.command(help = "Save the current network")
 def save():
+    """Save the current network in the SAVED_NETWORKS_FILE"""
     current_data = _get_current_network_data()
     
+    # print(current_data)
+    
+    # There isn't a current connection; display an error message
     if current_data == None:
         _send_message(NO_CURRENT_NETWORK_DETECTED)
         return
     
-    print(current_data)
     _save_network(current_data[0], current_data[1])
+    _send_message(NETWORK_SAVED)
     
 
-@wifi.command(help = "Forget a network; delete from saved networks")
+@wifi.command(help = "Display a menu to choose a network to forget it; delete from saved networks")
 @click.option("--all", "-a", help = "Forget all saved networks")
 def forget(all = False):
+    """Forget a Network. This means that the network will be removed from the SAVED_NETWORKS_FILE"""
+    
+    # Forget all saved networks
     if all:
         with open(SAVED_NETWORKS_FILE, "w") as file:
             json.dump({}, file)
         return
     
+    # Defines the interactive menu so the user can choose a network
     menu = [
         inquirer.List(
             "Network",
@@ -338,26 +400,29 @@ def forget(all = False):
         )
     ]
     
-    SSID = inquirer.prompt(menu)["Network"]
-    _remove_network(SSID)
+    # Remove the network choosed
+    ssid = inquirer.prompt(menu)["Network"]
+    _remove_network(ssid)
     
 @wifi.group(help = "Configurate the Wi-Fi manager")
 def config():
     pass    
 
 @config.command(help = "Get configuration values")
-@click.option(f"--{AUTOSAVE}", is_flag=True, help="Save the networks automatically after connection")
-@click.option(f"--{NOTIFICATIONS}", is_flag=True, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
-@click.option(f"--{PASSWORD_ENCRYPTION}", is_flag=True, help="Allows password encryption for added security when saving networks. (It's not recommended to set it to False)")
-@click.option(f"--{HIDE_PASSWORD}", is_flag=True, help="Hide the network password while connecting")
-@click.option(f"--all", "-a", is_flag=True, help="Get all config option values")
-def get(autosave, notifications, password_encryption, hide_password, all):
-    if not (autosave or notifications or password_encryption or hide_password or all):
-        raise click.UsageError("Almost one config option is required")
+@click.option(f"--{AUTOSAVE}", "-a", is_flag=True, help="Save the networks automatically after connection")
+@click.option(f"--{NOTIFICATIONS}", "-n", is_flag=True, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
+@click.option(f"--all", "-A", is_flag=True, help="Get all config option values")
+def get(autosave = False, notifications = False, all = False):
+    """Get the configuration values"""
     
+    # The user must provide at least one config option to get it value
+    if not (autosave or notifications or all):
+        raise click.UsageError("At least one config option is required")
+    
+    # Get all config options
     if all:
         print(
-            f"Autosave = {saved_config[AUTOSAVE]}\nNotifications = {saved_config[NOTIFICATIONS]}\nPassword Encryption = {saved_config[PASSWORD_ENCRYPTION]}\nHide Password = {saved_config[HIDE_PASSWORD]}"
+            f"Autosave = {saved_config[AUTOSAVE]}\nNotifications = {saved_config[NOTIFICATIONS]}"
         )
         return
     
@@ -365,21 +430,19 @@ def get(autosave, notifications, password_encryption, hide_password, all):
         print(f"Autosave = {saved_config[AUTOSAVE]}")
     if notifications:
         print(f"Notifications = {saved_config[NOTIFICATIONS]}")
-    if password_encryption:
-        print(f"Password Encryption = {saved_config[PASSWORD_ENCRYPTION]}")
-    if hide_password:
-        print(f"Hide Password = {saved_config[HIDE_PASSWORD]}")
 
 @config.command(help = "Set values to configuration options")
-@click.option(f"--{AUTOSAVE}", type=bool, help="Save the networks automatically after connection")
-@click.option(f"--{NOTIFICATIONS}", type=bool, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
-@click.option(f"--{PASSWORD_ENCRYPTION}", type=bool, help="Allows password encryption for added security when saving networks. (It's not recommended to set it to False)")
-@click.option(f"--{HIDE_PASSWORD}", type=bool, help="Hide the network password while connecting")
-@click.option("--reset", is_flag=True, help="Reset all configurations by default")
-def set(autosave, notifications, password_encryption, hide_password, reset):
-    if (autosave == None and notifications == None and password_encryption == None and hide_password == None and reset == None):
+@click.option(f"--{AUTOSAVE}", "-a", type=bool, help="Save the networks automatically after connection")
+@click.option(f"--{NOTIFICATIONS}", "-n", type=bool, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
+@click.option("--reset", "-r", is_flag=True, help="Reset all configurations by default")
+def set(autosave, notifications, reset):
+    """Set config options"""
+    
+    # The user must provide at least one config option to set it value
+    if (autosave == None and notifications == None and reset == None):
         raise click.UsageError("Almost one config option is required")
     
+    # Reset the default setting options
     if reset:
         _save_config(DEFAULT_CONFIG)
         return
@@ -388,19 +451,16 @@ def set(autosave, notifications, password_encryption, hide_password, reset):
         saved_config[AUTOSAVE] = autosave
     if notifications != None:
         saved_config[NOTIFICATIONS] = notifications
-    if password_encryption != None:
-        saved_config[PASSWORD_ENCRYPTION] = password_encryption
-    if hide_password != None:
-        saved_config[HIDE_PASSWORD] = hide_password
         
     _save_config(saved_config)
 
+
 # ======================================================================================================================
 #
-#               MAIN
+#           MAIN
 #
 #
 
+
 if __name__ == "__main__":
     wifi()
-    
