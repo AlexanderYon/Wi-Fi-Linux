@@ -369,8 +369,6 @@ def save():
     """Save the current network in the SAVED_NETWORKS_FILE"""
     current_data = _get_current_network_data()
     
-    # print(current_data)
-    
     # There isn't a current connection; display an error message
     if current_data == None:
         _send_message(NO_CURRENT_NETWORK_DETECTED)
@@ -381,7 +379,7 @@ def save():
     
 
 @wifi.command(help = "Display a menu to choose a network to forget it; delete from saved networks")
-@click.option("--all", "-a", help = "Forget all saved networks")
+@click.option("--all", "-a", is_flag = True, help = "Forget all saved networks")
 def forget(all = False):
     """Forget a Network. This means that the network will be removed from the SAVED_NETWORKS_FILE"""
     
@@ -409,8 +407,8 @@ def config():
     pass    
 
 @config.command(help = "Get configuration values")
-@click.option(f"--{AUTOSAVE}", "-a", is_flag=True, help="Save the networks automatically after connection")
-@click.option(f"--{NOTIFICATIONS}", "-n", is_flag=True, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
+@click.option(f"--{AUTOSAVE}", is_flag=True, help="Save the networks automatically after connection")
+@click.option(f"--{NOTIFICATIONS}", is_flag=True, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
 @click.option(f"--all", "-A", is_flag=True, help="Get all config option values")
 def get(autosave = False, notifications = False, all = False):
     """Get the configuration values"""
@@ -432,8 +430,8 @@ def get(autosave = False, notifications = False, all = False):
         print(f"Notifications = {saved_config[NOTIFICATIONS]}")
 
 @config.command(help = "Set values to configuration options")
-@click.option(f"--{AUTOSAVE}", "-a", type=bool, help="Save the networks automatically after connection")
-@click.option(f"--{NOTIFICATIONS}", "-n", type=bool, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
+@click.option(f"--{AUTOSAVE}", type=bool, help="Save the networks automatically after connection")
+@click.option(f"--{NOTIFICATIONS}", type=bool, help="Send notifications for Wi-Fi operations (On, Off, Connect, Disconnect, etc.)")
 @click.option("--reset", "-r", is_flag=True, help="Reset all configurations by default")
 def set(autosave, notifications, reset):
     """Set config options"""

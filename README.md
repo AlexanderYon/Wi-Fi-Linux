@@ -1,4 +1,3 @@
----
 
 # Wi-Fi Manager CLI for Linux
 
@@ -77,6 +76,7 @@ wifi [OPTIONS] COMMAND [ARGS]...
   wifi connect [-h | --hide-password]
   ```
   This commands will display an interactive menu where you can choose a network to connect to. Something like this:
+
   ```bash
   [?] Select a network to connect. Press Ctrl + C to exit: 
   > Network1
@@ -128,7 +128,6 @@ You can customize the behavior of the script by setting the following options:
 
 - `autosave` – Automatically save networks after connection
 - `notifications` – Show notifications for Wi-Fi operations (uses `notify-send`)
-- `password-encryption` – Enables password encryption for security
 
 ## Security
 
@@ -143,4 +142,3 @@ The script securely saves network credentials by encrypting passwords with `Fern
 
 The possibility of incorporating an interactive main menu or even graphical interface will be evaluated in future versions.
 
----
