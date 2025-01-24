@@ -37,7 +37,6 @@ def _encrypt(token : str):
         
         Returns:
             str: The encrypted token
-
     """
     key = _load_or_gen_ecncryption_key()
     fernet = Fernet(key)
@@ -216,6 +215,10 @@ def _connect_to_network(ssid : str, password : str):
     """Connect to a network using the given credentials (ssid, password)"""
     return _run_command(CONNECT.format(network_ssid=ssid.replace(" ", r"\ "), network_password=password))
 
+def _connect_to_saved_network(ssid : str):
+    return _run_command(CONNECT_TO_SAVED_NW.format(nw_ssid=ssid.replace(" ", r"\ ")))
+
+
 
 # =================================================================================================
 #
@@ -239,6 +242,7 @@ def off():
     """Turn off the Wi-Fi"""
     _run_command(OFF)
     _send_message(OFF_MESSAGE)
+    password = _decrypt(saved_networks[ssid])
 
 @wifi.command(help = "Get the general status of the Wi-Fi")
 @click.option("--show-password", "-s", is_flag = True, help = "Show the password of the current network (use carefully)")
@@ -251,7 +255,7 @@ def status(show_password = False):
         
         # Check the Wi-Fi status
         if dev_type == "wifi":
-            print(dev_status)
+            # print(dev_status)
             
             # Wi-Fi is disabled
             if dev_status == "unavailable":
@@ -263,9 +267,9 @@ def status(show_password = False):
                 
             # Wi-Fi is connected
             else: 
-                print("Connected")
                 credentials = _get_current_network_data()
-                print(f"Network: {credentials[0]}")
+                print("Connected")
+                print(f"SSID: {credentials[0]}")
                 
                 # Show the password if user want it
                 if show_password:
@@ -304,16 +308,19 @@ def connect(show_password = False):
             choices = _get_available_networks()
         )
     ]
-    
-    # Network choosed by user
-    ssid = inquirer.prompt(menu)['Network']
-    
-    print(f"Conecting to '{ssid}'")
+
+    try:
+        # Network choosed by user
+        ssid = inquirer.prompt(menu)['Network']
+
+    except TypeError: # If user type Ctrl + C, exit
+        return
+
+    print(f"Connecting to '{ssid}'")
     
     # If the network is saved, get the password from the saved networks file 
     if ssid in saved_networks:
-        password = _decrypt(saved_networks[ssid])
-        result = _connect_to_network(ssid, password)
+        result = _connect_to_saved_network(ssid)
         
         # If the connection failed, exit
         if result.returncode != 0:
@@ -331,6 +338,7 @@ def connect(show_password = False):
         
         # Notify if something went wrong
         if result.returncode != 0:
+            _send_message(result)
             _send_message(CONNECTION_FAILED)
             return
         
@@ -344,7 +352,7 @@ def connect(show_password = False):
         _save_network(ssid, password)
         _send_message(NETWORK_SAVED)
 
-    _send_message(CONNECTION_SUCCESSFULL)
+    _send_message(CONNECTION_SUCCESSFULL.format(nw_ssid=ssid))
 
 @wifi.command(help = "Disconnect from the current connection")
 def disconnect():

@@ -29,7 +29,7 @@ ENCRYPTION_KEY_FILE = os.path.join(CONFIG_DIR, "secret.key")
 
 # ==================================================================================================
 # 
-#       OPTIONS AND IT'S VALUES
+#       OPTIONS AND ITS VALUES
 # 
 #
 
@@ -74,7 +74,7 @@ ON_MESSAGE = f"  Wi-Fi On {EMOTICON_1}"
 OFF_MESSAGE = f"󰖪  Wi-Fi Off {EMOTICON_2}"
 
 # Message when connection to a network was successfull
-CONNECTION_SUCCESSFULL = f"󱚽  Successfull connection {EMOTICON_3}"
+CONNECTION_SUCCESSFULL = f"󱚽  Connected to \"{{nw_ssid}}\" successfully {EMOTICON_3}"
 
 # Message when connection to a network failed 
 CONNECTION_FAILED= f"󱛅  Connection failed {EMOTICON_4}. Try again"
@@ -110,6 +110,7 @@ ON = "nmcli radio wifi on"
 OFF = "nmcli radio wifi off"
 LIST = "nmcli device wifi list"
 CONNECT = "nmcli device wifi connect {network_ssid} password {network_password}"
+CONNECT_TO_SAVED_NW = "nmcli connection up {nw_ssid}"
 DISCONNECT = "nmcli device disconnect {device}"
 STATUS = "nmcli general status"
 #GET_CURRENT_NETWORK_DATA = 'nmcli device wifi show-password'
