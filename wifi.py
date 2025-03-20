@@ -1,4 +1,5 @@
-#!/bin/python3
+#!/usr/bin/python3
+
 import click, subprocess, getpass, json, os, inquirer
 from cryptography.fernet import Fernet
 from default import *
@@ -9,7 +10,7 @@ from default import *
 #
 #
 
-def _load_or_gen_ecncryption_key():
+def _load_or_gen_encryption_key():
     """
         Load the encryption key using Fernet to use it to encrypt / decrypt passwords.
         If the key hasn't been generated yet, generate it and save it in the ENCRYPTION_FILE
@@ -38,7 +39,7 @@ def _encrypt(token : str):
         Returns:
             str: The encrypted token
     """
-    key = _load_or_gen_ecncryption_key()
+    key = _load_or_gen_encryption_key()
     fernet = Fernet(key)
     encrypted_password = fernet.encrypt(token.encode())
     return encrypted_password.decode()
@@ -51,17 +52,17 @@ def _decrypt(encrypted_token : str):
             token (str): Is the tken for encrypt
         
         Returns:
-            str: THe encrypted token
+            str: The encrypted token
 
     """
-    key = _load_or_gen_ecncryption_key()
+    key = _load_or_gen_encryption_key()
     fernet = Fernet(key)
     decrypted_password = fernet.decrypt(encrypted_token.encode())
     return decrypted_password.decode()
 
 def _load_config() -> dict:
     """
-        Load the config if the config file exists or create it othwerwise.
+        Load the config if the config file exists or create it otherwise.
         
         Returns:
             dict: The configuration in a dict, where the keys are the config options
@@ -95,7 +96,7 @@ def _save_config(config : dict):
 
 def _load_saved_networks() -> dict:
     """
-        Return the saved networks as a dict where the keys are the SSIDs and the values are the paswords
+        Return the saved networks as a dict where the keys are the SSIDs and the values are the passwords
         
         Returns:
             dict: The saved networks
@@ -123,7 +124,7 @@ def _load_saved_networks() -> dict:
 
 saved_config = _load_config() # load the config map (dictionary) globally from the config.json file
 saved_networks = _load_saved_networks() # load the saved-networks map (dictionary) globally from the saved_networks.json file
-_load_or_gen_ecncryption_key() # Load the encryption key (or generate it)
+_load_or_gen_encryption_key() # Load the encryption key (or generate it)
 
 
 # ===========================================================================
@@ -140,7 +141,7 @@ def _get_available_networks():
 # Return a tuple with the current basic credentials: (SSID, password)
 def _get_current_network_data():
     """
-        Return the information of the current connection using the next form:
+        Return the information of The current connection using the next form:
 
             (SSID, Password)
     """
@@ -191,7 +192,7 @@ def _remove_network(ssid: str):
     
     with open(SAVED_NETWORKS_FILE, 'w') as file: # Update the saved networks
         json.dump(saved_networks, file, indent=4)
-    _send_message(NETWORK_FORGOTTEN_SUCESSFULLY.format(network_ssid=ssid))
+    _send_message(NETWORK_FORGOTTEN_SUCCESSFULLY.format(network_ssid=ssid))
 
 def _run_command(command : str):
     ''' Run a command and return the process. Internally uses 'subprocess' module
@@ -310,7 +311,7 @@ def connect(show_password = False):
     ]
 
     try:
-        # Network choosed by user
+        # Network chosen by user
         ssid = inquirer.prompt(menu)['Network']
 
     except TypeError: # If user type Ctrl + C, exit
@@ -350,13 +351,13 @@ def connect(show_password = False):
                 return
         
         _save_network(ssid, password)
-        _send_message(NETWORK_SAVED)
+        _send_message(NETWORK_SAVED_SUCCESSFULLY)
 
     _send_message(CONNECTION_SUCCESSFULL.format(nw_ssid=ssid))
 
 @wifi.command(help = "Disconnect from the current connection")
 def disconnect():
-    """Disconnect fro the current network. If there isn't a current connection, display an error message"""
+    """Disconnect from the current network. If there isn't a current connection, display an error message"""
     result = _run_command(GET_DEVICE_STATUS)
     
     # User is already disconnected
@@ -369,7 +370,7 @@ def disconnect():
         current_device, device_type, status = line.split(":")
         if (device_type == "wifi" and status == "connected"): 
             _run_command(DISCONNECT.format(device=current_device))
-            _send_message(DISCONNECTION_SUCCESSFULLY)
+            _send_message(DISCONNECTION_SUCCESSFULL)
             return
 
 @wifi.command(help = "Save the current network")
@@ -383,7 +384,7 @@ def save():
         return
     
     _save_network(current_data[0], current_data[1])
-    _send_message(NETWORK_SAVED)
+    _send_message(NETWORK_SAVED_SUCCESSFULLY)
     
 
 @wifi.command(help = "Display a menu to choose a network to forget it; delete from saved networks")
@@ -406,7 +407,7 @@ def forget(all = False):
         )
     ]
     
-    # Remove the network choosed
+    # Remove the network chosen
     ssid = inquirer.prompt(menu)["Network"]
     _remove_network(ssid)
     

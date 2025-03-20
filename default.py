@@ -80,7 +80,7 @@ CONNECTION_SUCCESSFULL = f"󱚽  Connected to \"{{nw_ssid}}\" successfully {EMOT
 CONNECTION_FAILED= f"󱛅  Connection failed {EMOTICON_4}. Try again"
 
 # Message when disconnection to network was successfully
-DISCONNECTION_SUCCESSFULLY = f"󱛅  Disconnected {EMOTICON_5}"
+DISCONNECTION_SUCCESSFULL = f"󱛅  Disconnected {EMOTICON_5}"
 
 # Message when no current network connection was detected
 NO_CURRENT_NETWORK_DETECTED = f"No current network detected; You are offline {EMOTICON_6}"
@@ -89,13 +89,13 @@ NO_CURRENT_NETWORK_DETECTED = f"No current network detected; You are offline {EM
 NO_NETWORK_AVAILABLE_MESSAGE = "No network available"
 
 # Message whet saving network
-NETWORK_SAVED = "Network saved successfully"
+NETWORK_SAVED_SUCCESSFULLY = "Network saved successfully"
 
 # Message when no credentials it's been found for a network
 NO_CREDENTIALS_FOUND = "No credentials found for {network_ssid}"
 
 # Message if the network has been forgotten succesfully
-NETWORK_FORGOTTEN_SUCESSFULLY = "Network '{network_ssid}' forgotten succesfully"
+NETWORK_FORGOTTEN_SUCCESSFULLY = "Network '{network_ssid}' forgotten succesfully"
 
 
 # ==================================================================================================
