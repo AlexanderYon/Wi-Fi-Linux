@@ -4,54 +4,12 @@ import os
 #   This file contains the default settings of the Wi-Fi manager
 # 
 
-
 # ==================================================================================================
 # 
-#       PATHS AND FILES
+#       MESSAGES
 # 
-#
-
-# Here the config directory and files are defined
-# You can change it if you want
-
-# Defines $HOME/.config/wifi as config directory
-CONFIG_DIR = os.path.expanduser("~/.config/wifi")
-
-# Defines $HOME/.config/wifi/config.json as config file
-CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
-
-# Defines $HOME/.config/wifi/saved_networks.json file to save the networks credentials
-SAVED_NETWORKS_FILE = os.path.join(CONFIG_DIR, "saved_networks.json")
-
-# Defines the files that contains the encryptation key for credentials
-ENCRYPTION_KEY_FILE = os.path.join(CONFIG_DIR, "secret.key")
-
-
-# ==================================================================================================
 # 
-#       OPTIONS AND ITS VALUES
-# 
-#
 
-
-# ==================  Section 1 : Dynamic options  ==================
-
-# This options can be changed from CLI or directly in the config file
-
-# Autosave for networks credentials
-AUTOSAVE = "autosave"
-
-# Enable or disable notifications
-NOTIFICATIONS = "notifications"
-
-# Defines the settings that will be charged automatically the first time
-# and will be saved in the config file.
-DEFAULT_CONFIG = {
-    AUTOSAVE: False,
-    NOTIFICATIONS: False
-}
-
-# ================== Section 2 : Fixed options  ==================
 
 # This options will be used directly from the main script
 # and cannot be changed from the CLI because they aren't included in
@@ -95,7 +53,7 @@ NETWORK_SAVED_SUCCESSFULLY = "Network saved successfully"
 NO_CREDENTIALS_FOUND = "No credentials found for {network_ssid}"
 
 # Message if the network has been forgotten succesfully
-NETWORK_FORGOTTEN_SUCCESSFULLY = "Network '{network_ssid}' forgotten succesfully"
+NETWORK_FORGOTTEN_SUCCESSFULLY = "Network \"{network_ssid}\" forgotten succesfully"
 
 
 # ==================================================================================================
@@ -110,6 +68,7 @@ ON = "nmcli radio wifi on"
 OFF = "nmcli radio wifi off"
 LIST = "nmcli device wifi list"
 CONNECT = "nmcli device wifi connect {network_ssid} password {network_password}"
+CONNECT_NO_SAVE = "nmcli device wifi connect {network_ssid} password {network_password} --no-save"
 CONNECT_TO_SAVED_NW = "nmcli connection up {nw_ssid}"
 DISCONNECT = "nmcli device disconnect {device}"
 STATUS = "nmcli general status"
@@ -118,3 +77,5 @@ GET_CURRENT_SSID = "nmcli device wifi show-password | grep SSID | awk '{$1=\"\";
 GET_CURRENT_PASSWORD = f"nmcli device wifi show-password | grep {'Contraseña' if os.getenv('LANG', 'en_US').startswith('es') else 'Password'} | awk '{{print $2}}'"
 GET_DEVICE_STATUS = "nmcli -t -f DEVICE,TYPE,STATE device"
 GET_AVAILABLE_NETWORKS = "nmcli -t -f SSID device wifi list"
+REMOVE_NETWORK = "nmcli connection delete {network_ssid}"
+GET_SAVED_NETWORKS = "nmcli -t -f NAME,TYPE connection show | grep wireless"
